@@ -1,11 +1,22 @@
+'use strict';
+
 const express = require('express');
 const bodyParser = require('body-parser');
+
+const config = require('./config');
+
 const app = express();
 
 const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport({
-  host: '192.168.1.2',
+  host: config.mail.host,
   secure: false,
+  auth: config.mail.user
+    ? {
+        user: config.mail.user,
+        pass: config.mail.password
+      }
+    : undefined,
   tls: {
     rejectUnauthorized: false
   }
