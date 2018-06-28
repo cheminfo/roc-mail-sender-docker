@@ -2,6 +2,7 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const superagent = require('superagent');
 
 const config = require('./config');
 
@@ -25,7 +26,13 @@ app.use(bodyParser.json());
 
 app.post('/send', async function(req, res) {
   const toSend = req.body;
-  console.log(toSend);
+  try {
+    const rocUser = await getRocUser(req);
+    console.log('get roc user succeeded', rocUser);
+  } catch (e) {
+    console.log('get roc user failed', e, e.message);
+  }
+
   try {
     await transporter.sendMail({
       ...toSend,
@@ -38,5 +45,13 @@ app.post('/send', async function(req, res) {
 
   res.send({ ok: true });
 });
+
+async function getRocUser(req) {
+  const res = await superagent
+    .get(`${config.roc.host}/auth/session`)
+    .set('Accept', 'application/json')
+    .set('Cookie', req.get('Cookie'));
+  return res.body;
+}
 
 app.listen(3000);
