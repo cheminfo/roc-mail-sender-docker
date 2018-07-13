@@ -26,20 +26,24 @@ app.use(bodyParser.json());
 
 app.post('/send', async function(req, res) {
   const toSend = req.body;
+  let rocUser;
   try {
-    const rocUser = await getRocUser(req);
+    rocUser = await getRocUser(req);
     console.log('get roc user succeeded', rocUser);
-  } catch (e) {
-    console.log('get roc user failed', e, e.message);
-  }
 
-  try {
+    if (!rocUser.username || rocUser.username === 'anonymous') {
+      throw new Error('user is not logged in');
+    }
+
     await transporter.sendMail({
-      ...toSend,
-      to: 'luc@patiny.com',
-      from: 'test@cheminfo.org'
+      from: rocUser.username,
+      to: toSend.to,
+      subject: toSend.subject,
+      text: toSend.text,
+      html: toSend.html
     });
   } catch (e) {
+    console.log('get roc user failed', e, e.message);
     res.send(500, { error: e.message });
   }
 
